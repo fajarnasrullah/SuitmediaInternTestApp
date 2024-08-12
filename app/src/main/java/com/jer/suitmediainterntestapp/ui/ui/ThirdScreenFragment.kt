@@ -1,5 +1,7 @@
  package com.jer.suitmediainterntestapp.ui.ui
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -10,6 +12,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.jer.suitmediainterntestapp.R
 
 import com.jer.suitmediainterntestapp.data.remote.response.Data
@@ -24,6 +27,19 @@ import com.jer.suitmediainterntestapp.ui.viewmodel.UserViewModel
 
     private val binding by lazy { FragmentThirdScreenBinding.inflate(layoutInflater) }
 //     private lateinit var viewModel: UserViewModel
+     private lateinit var adapter: UserAdapter
+
+     private lateinit var sharedPreferences: SharedPreferences
+//     private val adapter by lazy {
+//         UserAdapter(requireContext()) { user ->
+//             // Navigate to SecondScreenFragment with selected user's name
+//             val action = ThirdScreenFragmentDirections.actionThirdScreenFragmentToSecondScreenFragment(
+//                 "${user.firstName} ${user.lastName}"
+//             )
+//             findNavController().navigate(action)
+//         }
+//     }
+     private val per_page = 10
 
 
 
@@ -48,6 +64,8 @@ import com.jer.suitmediainterntestapp.ui.viewmodel.UserViewModel
          val viewModel = ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(UserViewModel::class.java)
 //         viewModel = ViewModelProvider(this).get(UserViewModel::class.java)
 
+         sharedPreferences = requireActivity().getSharedPreferences("GetPrefs", Context.MODE_PRIVATE)
+
          viewModel.error.observe(viewLifecycleOwner) { error ->
              showToast(error)
          }
@@ -60,27 +78,64 @@ import com.jer.suitmediainterntestapp.ui.viewmodel.UserViewModel
          val layoutManager = LinearLayoutManager(requireContext())
          binding.rvUsers.layoutManager = layoutManager
 
-         viewModel.listUser.observe(viewLifecycleOwner) {user ->
-             setListData(user)
+         adapter = UserAdapter(requireContext()) { user ->
+             saveSelectedUserName("${user.firstName} ${user.lastName}")
+             view.findNavController().navigate(R.id.action_thirdScreenFragment2_to_secondScreenFragment)
          }
 
-//         ini contoh coba dulu:
-         val page = 1
-         val per_page = 10
-
-         viewModel.getAllUsers(page, per_page)
-
-
-     }
-
-     fun setListData(user: List<Data>) {
-         val adapter = UserAdapter(requireContext())
-         adapter.submitList(user)
          binding.rvUsers.adapter = adapter
+
+         viewModel.listUser.observe(viewLifecycleOwner) {user ->
+
+             adapter.submitList(user)
+             updateEmptyState(user.isEmpty())
+         }
+
+
+
+
+
+
+
+
+         binding.swipeRefreshLayout.setOnRefreshListener {
+             viewModel.refreshUsers(per_page)
+             binding.swipeRefreshLayout.isRefreshing = false
+         }
+
+
+         binding.rvUsers.setOnScrollListener(object : RecyclerView.OnScrollListener() {
+             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                 super.onScrolled(recyclerView, dx, dy)
+                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                 val totalItemCount = layoutManager.itemCount
+                 val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
+
+                 if (!viewModel.isLoading && !viewModel.isLastPage && lastVisibleItem >= totalItemCount - 1) {
+                     viewModel.loadMoreUsers(per_page)
+                 }
+             }
+         })
+
+
+         viewModel.getAllUsers(1, per_page)
+
+
      }
+
+
 
      fun showToast(message: String) {
          Toast.makeText(requireActivity(), message, Toast.LENGTH_SHORT).show()
+     }
+
+     private fun updateEmptyState(isEmpty: Boolean) {
+     }
+
+     private fun saveSelectedUserName(name: String) {
+         val editor = sharedPreferences.edit()
+         editor.putString("fullname", name)
+         editor.apply()
      }
 
 }

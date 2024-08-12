@@ -35,12 +35,15 @@ class SecondScreenFragment : Fragment() {
 
         sharedPreferences = requireActivity().getSharedPreferences("GetPrefs", Context.MODE_PRIVATE)
 
+
+
         binding.btnBack.setOnClickListener {
             view.findNavController().popBackStack()
 
         }
 
         binding.tvUsername.text = sharedPreferences.getString("name", "")
+        binding.tvSelected.text = sharedPreferences.getString("fullname", "")
 
         binding.btnChoose.setOnClickListener {
             view.findNavController().navigate(R.id.action_secondScreenFragment_to_thirdScreenFragment2)

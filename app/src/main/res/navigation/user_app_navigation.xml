@@ -19,6 +19,9 @@
         android:name="com.jer.suitmediainterntestapp.ui.ui.SecondScreenFragment"
         android:label="fragment_second_screen"
         tools:layout="@layout/fragment_second_screen" >
+<!--        <argument-->
+<!--            android:name="userName"-->
+<!--            app:argType="string" />-->
         <action
             android:id="@+id/action_secondScreenFragment_to_thirdScreenFragment2"
             app:destination="@id/thirdScreenFragment2" />
@@ -27,5 +30,11 @@
         android:id="@+id/thirdScreenFragment2"
         android:name="com.jer.suitmediainterntestapp.ui.ui.ThirdScreenFragment"
         android:label="fragment_third_screen"
-        tools:layout="@layout/fragment_third_screen" />
+        tools:layout="@layout/fragment_third_screen" >
+        <action
+            android:id="@+id/action_thirdScreenFragment2_to_secondScreenFragment"
+            app:destination="@id/secondScreenFragment" />
+    </fragment>
+
+
 </navigation>

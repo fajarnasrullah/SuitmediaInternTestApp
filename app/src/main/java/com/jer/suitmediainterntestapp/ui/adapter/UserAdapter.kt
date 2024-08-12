@@ -1,6 +1,7 @@
 package com.jer.suitmediainterntestapp.ui.adapter
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -13,8 +14,9 @@ import com.jer.suitmediainterntestapp.data.remote.response.Data
 import com.jer.suitmediainterntestapp.databinding.ItemUserBinding
 import de.hdodenhof.circleimageview.CircleImageView
 
-class UserAdapter(private val context: Context): ListAdapter<Data, UserAdapter.UserViewHolder>(
-    DIFF_CALLBACK) {
+class UserAdapter(private val context: Context, private val onItemClick: (Data) -> Unit): ListAdapter<Data, UserAdapter.UserViewHolder>(DIFF_CALLBACK) {
+
+
 
     inner class UserViewHolder(val binding: ItemUserBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(user: Data) {
@@ -26,6 +28,12 @@ class UserAdapter(private val context: Context): ListAdapter<Data, UserAdapter.U
             Glide.with(itemView.context)
                 .load(user.avatar)
                 .into(image)
+
+
+            itemView.setOnClickListener {
+
+                onItemClick(user)
+            }
 
         }
     }
