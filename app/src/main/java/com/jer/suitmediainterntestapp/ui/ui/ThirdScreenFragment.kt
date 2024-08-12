@@ -30,16 +30,8 @@ import com.jer.suitmediainterntestapp.ui.viewmodel.UserViewModel
      private lateinit var adapter: UserAdapter
 
      private lateinit var sharedPreferences: SharedPreferences
-//     private val adapter by lazy {
-//         UserAdapter(requireContext()) { user ->
-//             // Navigate to SecondScreenFragment with selected user's name
-//             val action = ThirdScreenFragmentDirections.actionThirdScreenFragmentToSecondScreenFragment(
-//                 "${user.firstName} ${user.lastName}"
-//             )
-//             findNavController().navigate(action)
-//         }
-//     }
-     private val per_page = 10
+
+     private val per_page = 13
 
 
 
@@ -93,29 +85,31 @@ import com.jer.suitmediainterntestapp.ui.viewmodel.UserViewModel
 
 
 
-
-
-
-
-
          binding.swipeRefreshLayout.setOnRefreshListener {
              viewModel.refreshUsers(per_page)
              binding.swipeRefreshLayout.isRefreshing = false
          }
 
 
-         binding.rvUsers.setOnScrollListener(object : RecyclerView.OnScrollListener() {
-             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                 super.onScrolled(recyclerView, dx, dy)
-                 val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                 val totalItemCount = layoutManager.itemCount
-                 val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
+         viewModel.isLoading.observe(viewLifecycleOwner) {isLoading ->
+             showLoading(isLoading)
+             binding.rvUsers.setOnScrollListener(object : RecyclerView.OnScrollListener() {
+                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                     super.onScrolled(recyclerView, dx, dy)
+                     val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                     val totalItemCount = layoutManager.itemCount
+                     val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
 
-                 if (!viewModel.isLoading && !viewModel.isLastPage && lastVisibleItem >= totalItemCount - 1) {
-                     viewModel.loadMoreUsers(per_page)
+                     if (!isLoading && !viewModel.isLastPage && lastVisibleItem >= totalItemCount - 1) {
+                         viewModel.loadMoreUsers(per_page)
+                     }
                  }
-             }
-         })
+             })
+         }
+
+         viewModel.error.observe(viewLifecycleOwner) {
+             showToast(it)
+         }
 
 
          viewModel.getAllUsers(1, per_page)
@@ -130,12 +124,25 @@ import com.jer.suitmediainterntestapp.ui.viewmodel.UserViewModel
      }
 
      private fun updateEmptyState(isEmpty: Boolean) {
+         if (isEmpty) {
+             binding.tvDataKosong.visibility = View.VISIBLE
+         } else {
+             binding.tvDataKosong.visibility = View.GONE
+         }
      }
 
      private fun saveSelectedUserName(name: String) {
          val editor = sharedPreferences.edit()
          editor.putString("fullname", name)
          editor.apply()
+     }
+
+     private fun showLoading(isLoading: Boolean) {
+         if (isLoading) {
+             binding.progressBar.visibility = View.VISIBLE
+         } else {
+             binding.progressBar.visibility = View.GONE
+         }
      }
 
 }

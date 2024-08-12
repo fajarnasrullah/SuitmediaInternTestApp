@@ -26,27 +26,28 @@ class UserViewModel(): ViewModel() {
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
     private var currentPage = 1
-    var isLoading = false
+//    var isLoading = false
     var isLastPage = false
 
 
     fun getAllUsers(page: Int, per_page: Int) {
 
-//        if (isLoading || isLastPage) return
 
-        isLoading = true
+
+        _isLoading.value = true
         ApiConfig.getApiService(ApiService::class.java).getUser(page, per_page).enqueue(object : Callback<UsersResponse> {
             override fun onResponse(p0: Call<UsersResponse>, p1: Response<UsersResponse>) {
-                isLoading = false
+                _isLoading.value = false
                 if (p1.isSuccessful) {
                     val newUsers = p1.body()?.data ?: emptyList()
                     _listUsers.value = newUsers
                     isLastPage = newUsers.isEmpty()
-//                        val currentUsers = _listUsers.value ?: emptyList()
-//                        _listUsers.value = currentUsers + newUsers
-//                        isLastPage = newUsers.size < per_page
-//                        currentPage++
+
+
 
 
 
@@ -54,13 +55,13 @@ class UserViewModel(): ViewModel() {
                     Log.e("UsersViewModel", "Failure: ${p1.message()}")
                 }
 
-                isLoading = false
+                _isLoading.value = false
             }
 
             override fun onFailure(p0: Call<UsersResponse>, p1: Throwable) {
                 Log.e("UsersViewModel", "Failure: ${p1.message}")
                 _error.value = "Failure ${p1.message}"
-                isLoading = false
+                _isLoading.value = false
             }
 
         })
@@ -73,7 +74,7 @@ class UserViewModel(): ViewModel() {
     }
 
     fun loadMoreUsers(per_page: Int) {
-        if (!isLoading && !isLastPage) {
+        if (!_isLoading.value!! && !isLastPage) {
             currentPage++
             getAllUsers(currentPage, per_page)
         }
